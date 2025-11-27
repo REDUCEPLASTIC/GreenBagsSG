@@ -8,6 +8,194 @@ window.addEventListener('scroll', function() {
     }
 });
 
+// Delayed Action Loading Animation
+// Start Experience = 15 seconds, Other buttons = 8 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const loadingTimer = loadingOverlay ? loadingOverlay.querySelector('.loading-timer') : null;
+    const loadingMessage = loadingOverlay ? loadingOverlay.querySelector('.loading-message') : null;
+    const loadingBar = loadingOverlay ? loadingOverlay.querySelector('.loading-bar') : null;
+    const plant = loadingOverlay ? loadingOverlay.querySelector('.plant') : null;
+    const stem = loadingOverlay ? loadingOverlay.querySelector('.stem') : null;
+    const leafLeft = loadingOverlay ? loadingOverlay.querySelector('.leaf-left') : null;
+    const leafRight = loadingOverlay ? loadingOverlay.querySelector('.leaf-right') : null;
+    const leafTop = loadingOverlay ? loadingOverlay.querySelector('.leaf-top') : null;
+    
+    if (!loadingOverlay) return;
+    
+    const funnyMessages = [
+        "Loading 10,000,000 words of eco-wisdom...",
+        "Growing sustainable thoughts...",
+        "Photosynthesizing your request...",
+        "Planting seeds of change...",
+        "Composting old habits...",
+        "Recycling your patience...",
+        "Cultivating green energy...",
+        "Sprouting eco-friendly vibes...",
+        "Watering your curiosity...",
+        "Nurturing the planet..."
+    ];
+    
+    let pendingAction = null;
+    let countdownInterval = null;
+    let messageInterval = null;
+    
+    // Show loading animation with custom duration
+    function showLoading(callback, duration = 8) {
+        pendingAction = callback;
+        
+        // Clear any existing intervals
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (messageInterval) clearInterval(messageInterval);
+        
+        // Reset animations by removing and re-adding plant
+        const plantContainer = loadingOverlay.querySelector('.plant-container');
+        if (plantContainer) {
+            const plantHTML = plantContainer.innerHTML;
+            plantContainer.innerHTML = '';
+            setTimeout(() => {
+                plantContainer.innerHTML = plantHTML;
+                
+                // Apply custom duration to animations
+                const newPlant = loadingOverlay.querySelector('.plant');
+                const newStem = loadingOverlay.querySelector('.stem');
+                const newLeafLeft = loadingOverlay.querySelector('.leaf-left');
+                const newLeafRight = loadingOverlay.querySelector('.leaf-right');
+                const newLeafTop = loadingOverlay.querySelector('.leaf-top');
+                
+                if (newPlant) newPlant.style.animation = `plantGrow ${duration}s ease-out forwards, plantSway 3s ease-in-out infinite`;
+                if (newStem) newStem.style.animation = `stemGrow ${duration}s ease-out forwards`;
+                if (newLeafLeft) {
+                    newLeafLeft.style.animation = `leafGrowLeft ${duration}s ease-out forwards`;
+                    newLeafLeft.style.animationDelay = `${duration * 0.2}s`;
+                }
+                if (newLeafRight) {
+                    newLeafRight.style.animation = `leafGrowRight ${duration}s ease-out forwards`;
+                    newLeafRight.style.animationDelay = `${duration * 0.4}s`;
+                }
+                if (newLeafTop) {
+                    newLeafTop.style.animation = `leafGrowTop ${duration}s ease-out forwards`;
+                    newLeafTop.style.animationDelay = `${duration * 0.6}s`;
+                }
+            }, 10);
+        }
+        
+        // Reset and set progress bar with custom duration
+        if (loadingBar) {
+            loadingBar.style.animation = 'none';
+            loadingBar.offsetHeight; // Trigger reflow
+            loadingBar.style.animation = `loadingProgress ${duration}s linear forwards, shimmer 1.5s infinite`;
+        }
+        
+        // Show overlay
+        loadingOverlay.classList.remove('hidden', 'fade-out');
+        document.body.style.overflow = 'hidden';
+        
+        // Start countdown
+        let timeLeft = duration;
+        if (loadingTimer) loadingTimer.textContent = timeLeft;
+        
+        // Update funny message every 2 seconds
+        let msgIndex = 0;
+        if (loadingMessage) {
+            loadingMessage.textContent = funnyMessages[msgIndex];
+            messageInterval = setInterval(() => {
+                msgIndex = (msgIndex + 1) % funnyMessages.length;
+                loadingMessage.textContent = funnyMessages[msgIndex];
+            }, 2000);
+        }
+        
+        // Countdown timer
+        countdownInterval = setInterval(() => {
+            timeLeft--;
+            if (loadingTimer) loadingTimer.textContent = Math.max(0, timeLeft);
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                clearInterval(messageInterval);
+                hideLoading();
+            }
+        }, 1000);
+    }
+    
+    // Hide loading and execute action
+    function hideLoading() {
+        loadingOverlay.classList.add('fade-out');
+        
+        setTimeout(() => {
+            loadingOverlay.classList.add('hidden');
+            document.body.style.overflow = '';
+            
+            // Execute the pending action
+            if (pendingAction && typeof pendingAction === 'function') {
+                pendingAction();
+                pendingAction = null;
+            }
+        }, 800); // Match fade-out duration
+    }
+    
+    // Make showLoading globally accessible for Start Experience
+    window.showLoadingAnimation = showLoading;
+    
+    // Attach to all delayed-action elements (8 seconds)
+    document.querySelectorAll('.delayed-action').forEach(element => {
+        element.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            playClickSound();
+            
+            const href = this.getAttribute('href');
+            const target = this.getAttribute('target');
+            const isLink = href && href !== '#' && !href.startsWith('javascript:');
+            
+            // Define the action to execute after loading
+            const action = () => {
+                if (isLink) {
+                    if (target === '_blank') {
+                        window.open(href, '_blank', 'noopener,noreferrer');
+                    } else {
+                        window.location.href = href;
+                    }
+                }
+            };
+            
+            showLoading(action, 8); // 8 seconds for regular buttons
+        });
+    });
+    
+    // Also handle chatbot toggle with delayed action (8 seconds)
+    const chatbotToggle = document.getElementById('chatbot-toggle');
+    if (chatbotToggle && !chatbotToggle.classList.contains('delayed-action-attached')) {
+        chatbotToggle.classList.add('delayed-action-attached');
+        
+        chatbotToggle.addEventListener('click', function(e) {
+            // Check if chatbot is already open
+            const chatbotWindow = document.getElementById('chatbot-window');
+            if (chatbotWindow && !chatbotWindow.classList.contains('hidden')) {
+                // Already open, just close it without delay
+                return;
+            }
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            playClickSound();
+            
+            showLoading(() => {
+                // Open chatbot after loading
+                const chatbotWindow = document.getElementById('chatbot-window');
+                if (chatbotWindow) {
+                    chatbotWindow.classList.remove('hidden');
+                    chatbotToggle.classList.add('active');
+                    const chatbotInput = document.getElementById('chatbot-input');
+                    if (chatbotInput) chatbotInput.focus();
+                }
+            }, 8); // 8 seconds for chatbot
+        }, true); // Use capture to run before other handlers
+    }
+});
+
 // Plastic Bag Impact Calculator
 document.addEventListener('DOMContentLoaded', function() {
     // Input elements
@@ -470,41 +658,97 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!ambientToggle || !ambientContainer) return;
 
     let ambientOn = false;
-    let ambientIframe = null;
+    let ambientPlayer = null;
     let ambientDesired = true; // we want ambience by default, but need user interaction
 
-    function createAmbientIframe() {
-        const iframe = document.createElement('iframe');
-        iframe.width = '0';
-        iframe.height = '0';
-        iframe.setAttribute('allow', 'autoplay');
-        iframe.setAttribute('title', 'Ambient background sound');
-        // YouTube embed with loop; autoplay starts only after user click
-        iframe.src = 'https://www.youtube.com/embed/t8JVK1jSSGw?autoplay=1&loop=1&playlist=t8JVK1jSSGw&controls=0&modestbranding=1&rel=0';
-        ambientContainer.innerHTML = '';
-        ambientContainer.appendChild(iframe);
-        ambientIframe = iframe;
+    // Load YouTube IFrame API
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    // YouTube player ready callback
+    window.onYouTubeIframeAPIReady = function() {
+        // API is ready, player will be created when user starts experience
+    };
+
+    function createAmbientPlayer() {
+        // Create a div for the player
+        ambientContainer.innerHTML = '<div id="ambient-youtube-player"></div>';
+        
+        // Check if API is ready
+        if (typeof YT !== 'undefined' && YT.Player) {
+            ambientPlayer = new YT.Player('ambient-youtube-player', {
+                height: '0',
+                width: '0',
+                videoId: '1xIgpAKTans',
+                playerVars: {
+                    'autoplay': 1,
+                    'loop': 1,
+                    'playlist': '1xIgpAKTans', // Required for looping single video
+                    'controls': 0,
+                    'showinfo': 0,
+                    'modestbranding': 1,
+                    'rel': 0,
+                    'enablejsapi': 1,
+                    'origin': window.location.origin
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        } else {
+            // Fallback to iframe if API not ready
+            const iframe = document.createElement('iframe');
+            iframe.width = '0';
+            iframe.height = '0';
+            iframe.setAttribute('allow', 'autoplay');
+            iframe.setAttribute('title', 'Ambient background sound');
+            iframe.src = 'https://www.youtube.com/embed/1xIgpAKTans?autoplay=1&loop=1&playlist=1xIgpAKTans&controls=0&modestbranding=1&rel=0&enablejsapi=1';
+            ambientContainer.innerHTML = '';
+            ambientContainer.appendChild(iframe);
+        }
+    }
+
+    function onPlayerReady(event) {
+        event.target.setVolume(50); // Set volume to 50%
+        event.target.playVideo();
+    }
+
+    function onPlayerStateChange(event) {
+        // If video ended, restart it (backup for loop)
+        if (event.data === YT.PlayerState.ENDED) {
+            event.target.seekTo(0);
+            event.target.playVideo();
+        }
     }
 
     function startAmbientIfNeeded() {
         if (!ambientOn) {
-            createAmbientIframe();
+            createAmbientPlayer();
             ambientOn = true;
             ambientToggle.classList.add('active');
             ambientToggle.querySelector('.ambient-audio-icon').textContent = '🔊';
         }
     }
 
+    function stopAmbient() {
+        if (ambientPlayer && typeof ambientPlayer.destroy === 'function') {
+            ambientPlayer.destroy();
+        }
+        ambientContainer.innerHTML = '';
+        ambientPlayer = null;
+        ambientOn = false;
+        ambientToggle.classList.remove('active');
+        ambientToggle.querySelector('.ambient-audio-icon').textContent = '🔈';
+    }
+
     ambientToggle.addEventListener('click', function() {
         if (!ambientOn) {
             startAmbientIfNeeded();
         } else {
-            // Stop audio by removing iframe
-            ambientContainer.innerHTML = '';
-            ambientIframe = null;
-            ambientOn = false;
-            ambientToggle.classList.remove('active');
-            ambientToggle.querySelector('.ambient-audio-icon').textContent = '🔈';
+            stopAmbient();
         }
     });
 
@@ -524,32 +768,45 @@ document.addEventListener('DOMContentLoaded', function() {
         experienceStartBtn.addEventListener('click', function() {
             playClickSound();
             
-            // Start ambient sound immediately
-            startAmbientIfNeeded();
-            
-            // Smooth fade-out overlay animation
+            // Hide the welcome overlay first
             experienceOverlay.classList.add('fading-out');
             
-            // After overlay fades, remove it completely and show hero with fade-in
             setTimeout(function() {
                 experienceOverlay.classList.add('hidden');
                 
-                // Remove hidden class from hero to trigger fade-in animation
-                if (heroSection) {
-                    heroSection.classList.remove('hidden-initially');
+                // Now show the 15-second loading animation
+                if (typeof window.showLoadingAnimation === 'function') {
+                    window.showLoadingAnimation(function() {
+                        // After 15 seconds loading, start the experience
+                        
+                        // Start ambient sound
+                        startAmbientIfNeeded();
+                        
+                        // Remove hidden class from hero to trigger fade-in animation
+                        if (heroSection) {
+                            heroSection.classList.remove('hidden-initially');
+                        }
+                        
+                        // Re-enable scrolling
+                        body.style.overflow = '';
+                        
+                        // Smooth scroll to top of page (hero section) after a brief delay
+                        setTimeout(function() {
+                            window.scrollTo({
+                                top: 0,
+                                behavior: 'smooth'
+                            });
+                        }, 100);
+                    }, 15); // 15 seconds for Start Experience
+                } else {
+                    // Fallback if loading animation not available
+                    startAmbientIfNeeded();
+                    if (heroSection) {
+                        heroSection.classList.remove('hidden-initially');
+                    }
+                    body.style.overflow = '';
                 }
-                
-                // Re-enable scrolling
-                body.style.overflow = '';
-                
-                // Smooth scroll to top of page (hero section) after a brief delay
-                setTimeout(function() {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: 'smooth'
-                    });
-                }, 100);
-            }, 600); // Match CSS transition duration (0.6s)
+            }, 400);
         });
     }
 });
