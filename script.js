@@ -797,7 +797,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 behavior: 'smooth'
                             });
                         }, 100);
-                    }, 15); // 15 seconds for Start Experience
+                    }, 5); // 15 seconds for Start Experience
                 } else {
                     // Fallback if loading animation not available
                     startAmbientIfNeeded();
