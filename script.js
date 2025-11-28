@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let messageInterval = null;
     
     // Show loading animation with custom duration
-    function showLoading(callback, duration = 8) {
+    function showLoading(callback, duration =3 ) {
         pendingAction = callback;
         
         // Clear any existing intervals
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let timeLeft = duration;
         if (loadingTimer) loadingTimer.textContent = timeLeft;
         
-        // Update funny message every 2 seconds
+        // Update funny message every 0.5 seconds
         let msgIndex = 0;
         if (loadingMessage) {
             loadingMessage.textContent = funnyMessages[msgIndex];
