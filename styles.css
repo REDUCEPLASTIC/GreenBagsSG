@@ -24,6 +24,25 @@ body {
     overflow-x: hidden;
 }
 
+.skip-link {
+    position: absolute;
+    top: -3rem;
+    left: 1rem;
+    z-index: 10000;
+    padding: 0.5rem 1rem;
+    background: var(--forest-green);
+    color: var(--white);
+    text-decoration: none;
+    border-radius: 0.25rem;
+    font-weight: 500;
+    transition: top 0.2s ease;
+}
+.skip-link:focus {
+    top: 1rem;
+    outline: 2px solid var(--leaf-green);
+    outline-offset: 2px;
+}
+
 /* Navigation */
 nav {
     position: fixed;
